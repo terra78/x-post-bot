@@ -6,7 +6,7 @@ on:
       account_slug:
         description: "Target account slug (optional)"
         required: false
-        type: string
+        default: ""
 
 jobs:
   run-post:
