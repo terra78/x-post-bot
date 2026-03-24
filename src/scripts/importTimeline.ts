@@ -28,7 +28,7 @@ const getLimit = (): number => {
   if (Number.isNaN(parsed) || parsed <= 0) {
     throw new Error("limit must be positive number");
   }
-  return Math.min(parsed, 100);
+  return Math.min(parsed, 3200);
 };
 
 const fetchAccount = async (slug: string): Promise<XAccount> => {
@@ -57,12 +57,26 @@ const splitPostAndLink = (tweet: TimelineTweet): { content: string; link: string
   const linkCandidate = urls.find((url) => url.expanded_url)?.expanded_url ?? null;
 
   let content = tweet.text;
+  // 全角スペースは半角へ
+  content = content.replace(/\u3000/g, " ");
   // X本文に含まれる t.co を除去して、リンクは別カラムで保持する
   content = content.replace(/https:\/\/t\.co\/[a-zA-Z0-9]+/g, " ");
-  content = content.replace(/\s+/g, " ").trim();
+
+  // 末尾URLや末尾英数字を除去（必要に応じて繰り返し適用）
+  const tailPattern =
+    /\s*(?:https?:\/\/\S+|www\.\S+|[a-zA-Z0-9][a-zA-Z0-9._~:/?#\[\]@!$&'()*+,;=%-]*\.[a-zA-Z]{2,}\S*|[a-zA-Z0-9]+)\s*$/;
+  let normalized = content.replace(/\s+/g, " ").trim();
+  while (tailPattern.test(normalized)) {
+    const next = normalized.replace(tailPattern, "").trim();
+    if (next === normalized) {
+      break;
+    }
+    normalized = next;
+  }
+  content = normalized;
 
   if (!content) {
-    content = tweet.text.trim();
+    content = tweet.text.replace(/\u3000/g, " ").trim();
   }
 
   return { content, link: linkCandidate };
@@ -110,12 +124,17 @@ const main = async (): Promise<void> => {
 
   const user = await client.v2.userByUsername(username);
   const timeline = await client.v2.userTimeline(user.data.id, {
-    max_results: limit,
+    max_results: Math.min(limit, 100),
     exclude: ["replies", "retweets"],
     "tweet.fields": ["entities"]
   });
-
-  const tweets = (timeline.tweets as unknown as TimelineTweet[]) ?? [];
+  const tweets: TimelineTweet[] = [];
+  for await (const tweet of timeline) {
+    tweets.push(tweet as unknown as TimelineTweet);
+    if (tweets.length >= limit) {
+      break;
+    }
+  }
   let inserted = 0;
   let skipped = 0;
 

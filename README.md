@@ -67,7 +67,7 @@ npm run import:timeline -- --account-slug shena_ringo --limit 10
 ```
 
 - `--account-slug`: `x_accounts.slug`（必須）
-- `--limit`: 取得件数（任意、デフォルト 10 / 最大 100）
+- `--limit`: 取得件数（任意、デフォルト 10 / 最大 3200）
 - `--username`: Xのユーザー名をslugと分けたい時のみ指定（任意）
 
 取り込み時は返信・リツイートを除外し、本文中の `t.co` URLは除去して、最初のURLを `link` として保存します。
