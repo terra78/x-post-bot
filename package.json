@@ -1,0 +1,34 @@
+{
+  "name": "x-post-bot",
+  "version": "0.1.0",
+  "main": "dist/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "post": "tsx src/jobs/postDueAccounts.ts",
+    "seed": "tsx src/scripts/seedAccounts.ts",
+    "import:timeline": "tsx src/scripts/importTimeline.ts",
+    "check:x-auth": "tsx src/scripts/checkXAuth.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "twitter-api-v2": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
