@@ -291,7 +291,6 @@ app.get("/admin/accounts", async (req, res) => {
       return `<tr>
         <td>${escapeHtml(account.slug)}</td>
         <td>${escapeHtml(account.display_name)}</td>
-        <td>${account.posting_hour_utc.toString().padStart(2, "0")}:${account.posting_minute_utc.toString().padStart(2, "0")} UTC</td>
         <td>${account.enabled ? "有効" : "無効"}</td>
         <td>
           <form method="post" action="/admin/accounts/${account.id}/update">
@@ -303,16 +302,6 @@ app.get("/admin/accounts", async (req, res) => {
               <div>
                 <label>表示名</label>
                 <input name="display_name" value="${escapeHtml(account.display_name)}" required />
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label>投稿時（UTC 時）</label>
-                <input type="number" name="posting_hour_utc" min="0" max="23" value="${account.posting_hour_utc}" required />
-              </div>
-              <div>
-                <label>投稿時（UTC 分）</label>
-                <input type="number" name="posting_minute_utc" min="0" max="59" value="${account.posting_minute_utc}" required />
               </div>
             </div>
             <label><input class="inline" type="checkbox" name="enabled" ${account.enabled ? "checked" : ""} />有効</label>
@@ -363,16 +352,6 @@ app.get("/admin/accounts", async (req, res) => {
             <input name="display_name" required />
           </div>
         </div>
-        <div class="row">
-          <div>
-            <label>投稿時（UTC 時）</label>
-            <input type="number" name="posting_hour_utc" min="0" max="23" required />
-          </div>
-          <div>
-            <label>投稿時（UTC 分）</label>
-            <input type="number" name="posting_minute_utc" min="0" max="59" required />
-          </div>
-        </div>
         <label><input class="inline" type="checkbox" name="enabled" checked />有効</label>
         <div class="row">
           <div>
@@ -399,7 +378,7 @@ app.get("/admin/accounts", async (req, res) => {
     </div>
     <table>
       <thead>
-        <tr><th>Slug</th><th>表示名</th><th>時刻</th><th>状態</th><th>操作</th></tr>
+        <tr><th>Slug</th><th>表示名</th><th>状態</th><th>操作</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -414,8 +393,8 @@ app.post("/admin/accounts", async (req, res) => {
   const payload = {
     slug: String(req.body.slug ?? "").trim(),
     display_name: String(req.body.display_name ?? "").trim(),
-    posting_hour_utc: Number(req.body.posting_hour_utc),
-    posting_minute_utc: Number(req.body.posting_minute_utc),
+    posting_hour_utc: 0,
+    posting_minute_utc: 0,
     enabled: req.body.enabled === "on",
     x_api_key: String(req.body.x_api_key ?? "").trim(),
     x_api_key_secret: String(req.body.x_api_key_secret ?? "").trim(),
@@ -453,8 +432,6 @@ app.post("/admin/accounts/:id/update", async (req, res) => {
   const accountUpdate: Record<string, unknown> = {
     slug: String(req.body.slug ?? "").trim(),
     display_name: String(req.body.display_name ?? "").trim(),
-    posting_hour_utc: Number(req.body.posting_hour_utc),
-    posting_minute_utc: Number(req.body.posting_minute_utc),
     enabled: req.body.enabled === "on"
   };
 

@@ -5,7 +5,7 @@
 
 ## できること
 
-- 1日1回投稿（アカウントごとに時刻を別管理）
+- 1日1回投稿（cronからアカウントごとに実行）
 - 投稿候補は `post_contents` からランダム取得（アカウント単位）
 - 同一アカウントでは「1巡するまで重複投稿しない」
 - リンクがある場合は `is.gd` で短縮（失敗時は元URLを使用）
@@ -28,6 +28,7 @@ cp .env.example .env
 
 3. Supabaseで `supabase/schema.sql` を実行
    - 既存環境を更新する場合は `supabase/migrations/20260324_account_scoped_post_contents.sql` も実行
+   - A運用へ寄せる場合は `supabase/migrations/20260324_set_x_accounts_time_defaults.sql` も実行
 4. `.env` に以下を設定
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
@@ -50,13 +51,7 @@ npm run dev
 npm run post -- --account-slug your-account-slug
 ```
 
-### 時刻一致アカウントを実行
-
-```bash
-npm run post
-```
-
-`x_accounts.posting_hour_utc` + `posting_minute_utc` が現在UTCと一致する有効アカウントが対象です。
+`--account-slug`（または `ACCOUNT_SLUG`）は必須です。
 
 ## 既存タイムライン取り込み
 
@@ -103,7 +98,7 @@ npm run check:x-auth -- --account-slug shena_ringo --probe
 ## GitHub Actions
 
 `.github/workflows/post.yml` を用意済みです。  
-外部cronサービスから `workflow_dispatch` を叩く想定で、`account_slug` を渡せます。
+外部cronサービスから `workflow_dispatch` を叩く想定で、`account_slug` を必ず渡します。
 
 必要なGitHub Secrets:
 
@@ -114,7 +109,7 @@ npm run check:x-auth -- --account-slug shena_ringo --probe
 
 - `post_contents`: 投稿候補（内容・リンク）
 - `post_contents.account_id`: どのアカウント向け候補かを保持
-- `x_accounts`: アカウント情報、投稿時刻、X API資格情報
+- `x_accounts`: アカウント情報、X API資格情報
 - `x_account_post_history`: 各アカウントがどの投稿候補を使ったか（重複防止）
 - `x_post_logs`: 投稿実行ログ（成功/失敗）
 - `short_links`: 短縮URLキャッシュ

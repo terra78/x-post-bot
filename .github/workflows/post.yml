@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       account_slug:
-        description: "Target account slug (optional)"
-        required: false
-        default: ""
+        description: "Target account slug"
+        required: true
 
 jobs:
   run-post:
