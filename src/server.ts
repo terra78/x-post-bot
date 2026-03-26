@@ -40,6 +40,22 @@ const requireAuth = (req: Request, res: Response): boolean => {
   return true;
 };
 
+const weightedLength = (text: string): number => {
+  let total = 0;
+  for (const ch of text) {
+    // ASCII and half-width Katakana are treated as half-width (=1)
+    const code = ch.codePointAt(0) ?? 0;
+    const isAscii = code <= 0x007f;
+    const isHalfWidthKatakana = code >= 0xff61 && code <= 0xff9f;
+    total += isAscii || isHalfWidthKatakana ? 1 : 2;
+  }
+  return total;
+};
+
+const buildPostPayload = (content: string, link: string): string => {
+  return link ? `${content} ${link}` : content;
+};
+
 const postsRedirect = (accountId: string | null, params: Record<string, string>): string => {
   const search = new URLSearchParams(params);
   if (accountId) {
@@ -213,6 +229,12 @@ app.post("/admin/posts", async (req, res) => {
     return;
   }
 
+  const payloadLength = weightedLength(buildPostPayload(content, link));
+  if (payloadLength > 280) {
+    res.redirect(postsRedirect(accountId, { error: "ポスト内容+リンクは全角140文字（半角280文字）以内で入力してください" }));
+    return;
+  }
+
   const { error } = await supabase.from("post_contents").insert({
     account_id: accountId,
     content,
@@ -241,6 +263,12 @@ app.post("/admin/posts/:id/update", async (req, res) => {
 
   if (!accountId || !content || Number.isNaN(id)) {
     res.redirect(postsRedirect(accountId || null, { error: "更新パラメータが不正です" }));
+    return;
+  }
+
+  const payloadLength = weightedLength(buildPostPayload(content, link));
+  if (payloadLength > 280) {
+    res.redirect(postsRedirect(accountId, { error: "ポスト内容+リンクは全角140文字（半角280文字）以内で入力してください" }));
     return;
   }
 
