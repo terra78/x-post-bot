@@ -128,23 +128,42 @@ app.get("/admin/posts", async (req, res) => {
     return;
   }
 
+  const pageSize = 30;
+  const pageText = typeof req.query.page === "string" ? req.query.page : "1";
+  const parsedPage = Number(pageText);
+  const currentPage = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const accountIdFromQuery = typeof req.query.account_id === "string" ? req.query.account_id : "";
   const accounts = await loadAccounts();
   const selectedAccount = accounts.find((account) => account.id === accountIdFromQuery) ?? accounts[0] ?? null;
 
   let posts: PostContent[] = [];
+  let totalCount = 0;
   if (selectedAccount) {
     const { data, error } = await supabase
       .from("post_contents")
       .select("*")
       .eq("account_id", selectedAccount.id)
-      .order("id", { ascending: true });
+      .order("id", { ascending: true })
+      .range(from, to);
 
     if (error) {
       res.status(500).send(layout("エラー", `<h1>読み込み失敗</h1><p>${escapeHtml(error.message)}</p>`));
       return;
     }
     posts = (data ?? []) as PostContent[];
+  }
+
+  if (selectedAccount) {
+    const { count, error } = await supabase
+      .from("post_contents")
+      .select("*", { count: "exact", head: true })
+      .eq("account_id", selectedAccount.id);
+    if (!error) {
+      totalCount = count ?? totalCount;
+    }
   }
 
   const accountSelectOptions = accounts
@@ -178,10 +197,33 @@ app.get("/admin/posts", async (req, res) => {
     })
     .join("");
 
+  const hasPrev = currentPage > 1;
+  const hasNext = selectedAccount ? currentPage * pageSize < totalCount : false;
+  const prevPage = Math.max(1, currentPage - 1);
+  const nextPage = currentPage + 1;
+  const pager = selectedAccount
+    ? `<div class="card">
+        <strong>件数:</strong> ${totalCount}件 / <strong>ページ:</strong> ${currentPage}
+        <div style="margin-top:8px;">
+          ${
+            hasPrev
+              ? `<a class="inline" href="/admin/posts?account_id=${escapeHtml(selectedAccount.id)}&page=${prevPage}">前へ</a>`
+              : ""
+          }
+          ${
+            hasNext
+              ? `<a class="inline" href="/admin/posts?account_id=${escapeHtml(selectedAccount.id)}&page=${nextPage}">次へ</a>`
+              : ""
+          }
+        </div>
+      </div>`
+    : "";
+
   const body = `
     <h1>投稿管理</h1>
     ${nav}
     ${renderFlash(req)}
+    ${pager}
     <div class="card">
       <h2>対象アカウント</h2>
       <form method="get" action="/admin/posts">
