@@ -238,7 +238,10 @@ app.get("/admin/posts", async (req, res) => {
     <div class="card">
       <h2>新規追加</h2>
       <form method="post" action="/admin/posts">
-        <input type="hidden" name="account_id" value="${escapeHtml(selectedAccount?.id ?? "")}" />
+        <label>保存先アカウント</label>
+        <select name="account_id" ${accounts.length === 0 ? "disabled" : ""} required>
+          ${accountSelectOptions}
+        </select>
         <label>ポスト内容</label>
         <textarea name="content" rows="3" required></textarea>
         <label>リンク（任意）</label>
