@@ -6,7 +6,7 @@
 ## できること
 
 - 1日1回投稿（cronからアカウントごとに実行）
-- `priority_post_queue` にデータがあれば優先投稿（id昇順）
+- `priority_post_queue` にデータがあれば優先投稿（id降順）
 - 投稿候補は `post_contents` からランダム取得（アカウント単位）
 - 同一アカウントでは「1巡するまで重複投稿しない」
 - リンクがある場合は `is.gd` で短縮（失敗時は元URLを使用）
@@ -112,7 +112,7 @@ npm run check:x-auth -- --account-slug shena_ringo --probe
 - `post_contents`: 投稿候補（内容・リンク）
 - `post_contents.account_id`: どのアカウント向け候補かを保持
 - `x_accounts`: アカウント情報、X API資格情報
-- `priority_post_queue`: 優先投稿キュー（`id` 昇順、投稿成功で削除）
+- `priority_post_queue`: 優先投稿キュー（`id` 降順、投稿成功で削除）
 - `x_account_post_history`: 各アカウントがどの投稿候補を使ったか（重複防止）
 - `x_post_logs`: 投稿実行ログ（成功/失敗）
 - `short_links`: 短縮URLキャッシュ

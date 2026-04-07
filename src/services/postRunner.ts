@@ -57,7 +57,7 @@ const findPriorityQueueTarget = async (account: XAccount): Promise<QueueTarget |
       .from("priority_post_queue")
       .select("id, post_content_id")
       .eq("account_id", account.id)
-      .order("id", { ascending: true })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle();
 
